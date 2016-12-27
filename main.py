@@ -22,6 +22,20 @@ Builder.load_string("""
 <StatLabel>:
     font_size: 30
 
+<CharacterSheet@TabbedPanelItem>:
+    BoxLayout:
+        id: content
+        StatLabel:
+            text: con
+        StatLabel:
+            text: str
+        StatLabel:
+            text: wis
+        StatLabel:
+            text: int
+        StatLabel:
+            text: cha
+
 """)
 
 
