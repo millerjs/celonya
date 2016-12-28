@@ -4,6 +4,7 @@ from random import randint
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
@@ -17,28 +18,22 @@ FONT_SMALL = 10
 FONT_MEDIUM = 20
 FONT_LARGE = 30
 FONT_XLARGE = 40
+FONT_XXLARGE = 60
+
+BLACK = (0, 0, 0, 1)
+GREY = (0.175, 0.175, 0.175, 1)
+WHITE = (1, 1, 1, 1)
+
 
 class Character(object):
 
-    def __init__(self, name):
+    modifiers = ['str', 'con', 'int', 'wis', 'cha', 'dex']
+    aux_values = ['level', 'AC', 'proiciency', 'HP', 'MHP']
+
+    def __init__(self, name, **kwargs):
         self.name = name
-        self.modifiers = OrderedDict((
-            ('str', randint(0, 3)),
-            ('con', randint(0, 3)),
-            ('int', randint(0, 3)),
-            ('wis', randint(0, 3)),
-            ('cha', randint(0, 3)),
-            ('dex', randint(0, 3)),
-        ))
-
-        self.aux_values = OrderedDict((
-            ('level', 1),
-            ('AC', randint(10, 14)),
-            ('proficiency', 2),
-            ('HP', randint(8, 11)),
-            ('MHP', randint(8, 11)),
-        ))
-
+        for key in self.modifiers + self.aux_values:
+            setattr(self, key, kwargs.get(key, 0))
 
 class Button1(Button):
     size = (150, 80)
@@ -66,13 +61,28 @@ class ValueEditorSlider(Slider):
 
 
 class ValueEditorText(TextInput):
-    def __init__(self, font_size=FONT_XLARGE, multiline=False, *args, **kwargs):
+    def __init__(self, font_size=FONT_XXLARGE, multiline=False,
+                 background_color=GREY, foreground_color=WHITE,
+                 *args, **kwargs):
+
         super(ValueEditorText, self).__init__(
-            font_size=font_size, multiline=multiline, *args, **kwargs)
+            font_size=font_size,
+            multiline=multiline,
+            background_color=background_color,
+            foreground_color=foreground_color,
+            *args, **kwargs)
+
+    def insert_text(self, substring, from_undo=False):
+        try:
+            text = str(int(substring))
+        except ValueError:
+            text = ''
+
+        return super(ValueEditorText, self).insert_text(
+            text, from_undo=from_undo)
 
 
 class ErrorPopup(Popup):
-
     def __init__(self, exception, size_hint=(.5, .5), *args, **kwargs):
         content = BoxLayout(orientation='vertical')
         content.add_widget(Label(text=str(exception)))
@@ -83,12 +93,18 @@ class ErrorPopup(Popup):
 
 
 class ValueEditorPopup(Popup):
+    def __init__(self, set_value, value, min_val=None, max_val=None,
+                 size_hint=(.6, .5), *args, **kwargs):
 
-    def __init__(self, set_value, value, min_val, max_val,
-                 size_hint=(.5, .5), *args, **kwargs):
+        min_val = min_val if min_val is not None else val - 20
+        max_val = max_val if max_val is not None else val + 20
 
         content = BoxLayout(orientation='vertical')
-        slider_label = ValueEditorText(text='%d' % value)
+        slider_label = ValueEditorText(
+            text='%d' % value,
+            size_hint=(.2, 1),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
 
         def update_label(value):
             slider_label.text = '%d' % value
@@ -106,8 +122,14 @@ class ValueEditorPopup(Popup):
         slider_label.bind(on_text_validation=save)
         save_btn = Button(text='save', font_size=20, on_press=save)
 
+        slider_box = BoxLayout()
+        label_kwargs = dict(font_size=FONT_MEDIUM, size_hint=(.05, 1))
+        slider_box.add_widget(Label(text=str(min_val), **label_kwargs))
+        slider_box.add_widget(slider)
+        slider_box.add_widget(Label(text=str(max_val), **label_kwargs))
+
         content.add_widget(slider_label)
-        content.add_widget(slider)
+        content.add_widget(slider_box)
         content.add_widget(save_btn)
 
         super(ValueEditorPopup, self).__init__(
@@ -118,8 +140,8 @@ class ValueEditorPopup(Popup):
 class TableButton(Button):
     font_size = FONT_LARGE
 
-    def __init__(self, value, prefix='', suffix='', min_val=-20,
-                 max_val=20, *args, **kwargs):
+    def __init__(self, value, prefix='', suffix='', min_val=-5,
+                 max_val=30, *args, **kwargs):
         super(TableButton, self).__init__(*args, **kwargs)
 
         self.prefix = prefix
@@ -197,11 +219,13 @@ class StatTab(TabbedPanelItem):
         self.content.spacing = 10
 
         # Auxiliary values
-        aux_values = ValueTable(self.character.modifiers, prefix='+', size_hint=(1, .3))
+        aux_dict = {key: getattr(character, key) for key in character.aux_values}
+        aux_values = ValueTable(aux_dict, prefix='+', size_hint=(1, .3))
         self.content.add_widget(aux_values)
 
         # Modifiers
-        modifiers = ValueTable(self.character.aux_values, size_hint=(1, .3))
+        mod_dict = {key: getattr(character, key) for key in character.modifiers}
+        modifiers = ValueTable(mod_dict, size_hint=(1, .3))
         self.content.add_widget(modifiers)
 
 
@@ -232,6 +256,7 @@ class CharcterTab(TabbedPanelItem):
         super(CharcterTab, self).__init__(*args, **kwargs)
 
         self.text = text
+
         # Non player characters
         content = BoxLayout(orientation='vertical')
         self.add_widget(content)
@@ -272,7 +297,6 @@ class RootWidget(FloatLayout):
         panel.add_widget(pc_tab)
         panel.add_widget(npc_tab)
         self.add_widget(panel)
-
 
 class MainApp(App):
 
