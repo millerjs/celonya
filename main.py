@@ -28,7 +28,7 @@ WHITE = (1, 1, 1, 1)
 class Character(object):
 
     modifiers = ['str', 'con', 'int', 'wis', 'cha', 'dex']
-    aux_values = ['level', 'AC', 'proiciency', 'HP', 'MHP']
+    aux_values = ['level', 'AC', 'proficiency', 'HP', 'MHP']
 
     def __init__(self, name, **kwargs):
         self.name = name
@@ -92,12 +92,30 @@ class ErrorPopup(Popup):
         self.open()
 
 
+class TextPromptPopup(Popup):
+
+    def __init__(self, prompt, callback, size_hint=(.5, .5), *args, **kwargs):
+        self.callback = callback
+        content = BoxLayout(orientation='vertical')
+        content.add_widget(Label(text=str(prompt)))
+        self.text_input = TextInput()
+        content.add_widget(self.text_input)
+
+        content.add_widget(Button(text='Continue', on_press=self.dismiss))
+        super(TextPromptPopup, self).__init__(
+            content=content, size_hint=size_hint, *args, **kwargs)
+
+    def dismiss(self, instance):
+        super(TextPromptPopup, self).dismiss()
+        self.callback(self.text_input.text)
+
+
 class ValueEditorPopup(Popup):
     def __init__(self, set_value, value, min_val=None, max_val=None,
                  size_hint=(.6, .5), *args, **kwargs):
 
-        min_val = min_val if min_val is not None else val - 20
-        max_val = max_val if max_val is not None else val + 20
+        min_val = min_val if min_val is not None else value - 20
+        max_val = max_val if max_val is not None else value + 20
 
         content = BoxLayout(orientation='vertical')
         slider_label = ValueEditorText(
@@ -123,12 +141,30 @@ class ValueEditorPopup(Popup):
         save_btn = Button(text='save', font_size=20, on_press=save)
 
         slider_box = BoxLayout()
-        label_kwargs = dict(font_size=FONT_MEDIUM, size_hint=(.05, 1))
-        slider_box.add_widget(Label(text=str(min_val), **label_kwargs))
+        label_kwargs = dict(font_size=FONT_MEDIUM, size_hint=(.2, 1))
+
+        # Boundary buttons
+        min_btn = Button(text=str(min_val), **label_kwargs)
+        max_btn = Button(text=str(max_val), **label_kwargs)
+
+        def update_min():
+            slider.min = (slider.min or -1) * 2
+            min_btn.text = str(slider.min)
+
+        def update_max():
+            slider.max = (slider.max or -1) * 2
+            max_btn.text = str(slider.max)
+
+        min_btn.on_press = update_min
+        max_btn.on_press = update_max
+
+        # Add widgets
+        slider_box.add_widget(min_btn)
         slider_box.add_widget(slider)
-        slider_box.add_widget(Label(text=str(max_val), **label_kwargs))
+        slider_box.add_widget(max_btn)
 
         content.add_widget(slider_label)
+        content.add_widget(Label(text='Absolute', size_hint=(1, .2)))
         content.add_widget(slider_box)
         content.add_widget(save_btn)
 
@@ -140,14 +176,11 @@ class ValueEditorPopup(Popup):
 class TableButton(Button):
     font_size = FONT_LARGE
 
-    def __init__(self, value, prefix='', suffix='', min_val=-5,
-                 max_val=30, *args, **kwargs):
+    def __init__(self, value, prefix='', suffix='', *args, **kwargs):
         super(TableButton, self).__init__(*args, **kwargs)
 
         self.prefix = prefix
         self.suffix = suffix
-        self.min_val = min_val
-        self.max_val = max_val
         self.value = value
         self.update_text()
 
@@ -159,8 +192,7 @@ class TableButton(Button):
         self.text = self.prefix + str(self.value) + self.suffix
 
     def popup_editor(self):
-        popup = ValueEditorPopup(
-            self.set_value, self.value, self.min_val, self.max_val)
+        popup = ValueEditorPopup(self.set_value, self.value)
         popup.open()
 
 
@@ -194,11 +226,7 @@ class CharacterSheet(TabbedPanelItem):
         self.character = character
         self.text = character.name
 
-        details = TabbedPanel(
-            do_default_tab=False,
-            rows=2,
-            tab_width=300,
-            tab_height=80)
+        details = TabbedPanel(do_default_tab=False, tab_width=300, tab_height=80)
 
         details.add_widget(StatTab(character))
         details.add_widget(SpellTab())
@@ -218,15 +246,15 @@ class StatTab(TabbedPanelItem):
         self.content = BoxLayout(orientation='vertical', size_hint=(1, 1))
         self.content.spacing = 10
 
-        # Auxiliary values
-        aux_dict = {key: getattr(character, key) for key in character.aux_values}
-        aux_values = ValueTable(aux_dict, prefix='+', size_hint=(1, .3))
-        self.content.add_widget(aux_values)
-
         # Modifiers
         mod_dict = {key: getattr(character, key) for key in character.modifiers}
         modifiers = ValueTable(mod_dict, size_hint=(1, .3))
         self.content.add_widget(modifiers)
+
+        # Auxiliary values
+        aux_dict = {key: getattr(character, key) for key in character.aux_values}
+        aux_values = ValueTable(aux_dict, prefix='+', size_hint=(1, .3))
+        self.content.add_widget(aux_values)
 
 
 class SpellTab(TabbedPanelItem):
@@ -256,20 +284,32 @@ class CharcterTab(TabbedPanelItem):
         super(CharcterTab, self).__init__(*args, **kwargs)
 
         self.text = text
+        self.font_size=FONT_MEDIUM
 
         # Non player characters
         content = BoxLayout(orientation='vertical')
         self.add_widget(content)
+
+        # Additional Actions
+        actions = BoxLayout(orientation='horizontal', size_hint=(1, .1),)
+        new_char_btn = Button(text='+', on_press=lambda instance: self.new_character())
+        actions.add_widget(new_char_btn)
+        content.add_widget(actions)
 
         # Character sheets
         self.character_sheets = TabbedPanel(
             do_default_tab=False,
             tab_width=200,
             tab_height=100)
+
         content.add_widget(self.character_sheets)
 
-    def add_character(self, char_sheet):
-        self.character_sheets.add_widget(char_sheet)
+    def add_character(self, character):
+        self.character_sheets.add_widget(CharacterSheet(character))
+
+    def new_character(self):
+        callback = lambda name: self.add_character(Character(name))
+        TextPromptPopup('Character name', callback).open()
 
 
 class RootWidget(FloatLayout):
@@ -285,12 +325,12 @@ class RootWidget(FloatLayout):
 
         pc_tab = CharcterTab("PCs")
 
-        pc_tab.add_character(CharacterSheet(Character('Trym Tosscobble')))
-        pc_tab.add_character(CharacterSheet(Character('Aden Iolas')))
-        pc_tab.add_character(CharacterSheet(Character('Mara Salchil')))
-        pc_tab.add_character(CharacterSheet(Character('Shandarah Smith')))
-        pc_tab.add_character(CharacterSheet(Character('Mud')))
-        pc_tab.add_character(CharacterSheet(Character('Peaches')))
+        pc_tab.add_character(Character('Trym Tosscobble'))
+        pc_tab.add_character(Character('Aden Iolas'))
+        pc_tab.add_character(Character('Mara Salchil'))
+        pc_tab.add_character(Character('Shandarah Smith'))
+        pc_tab.add_character(Character('Mud'))
+        pc_tab.add_character(Character('Peaches'))
 
         npc_tab = CharcterTab("NPCs")
 
