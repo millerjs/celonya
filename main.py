@@ -14,15 +14,12 @@ from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.textinput import TextInput
 
 
-FONT_SMALL = 10
-FONT_MEDIUM = 20
-FONT_LARGE = 30
-FONT_XLARGE = 40
-FONT_XXLARGE = 60
+from editors import ValueEditorPopup, TextPromptPopup
 
-BLACK = (0, 0, 0, 1)
-GREY = (0.175, 0.175, 0.175, 1)
-WHITE = (1, 1, 1, 1)
+from constants import (
+    FONT_SMALL, FONT_MEDIUM, FONT_LARGE, FONT_XLARGE, FONT_XXLARGE, BLACK,
+    GREY, WHITE
+)
 
 
 class Character(object):
@@ -45,43 +42,6 @@ class TableLabel(Label):
     font_size = FONT_LARGE
 
 
-class ValueEditorSlider(Slider):
-
-    def __init__(self, on_update, step=1, *args, **kwargs):
-        self.on_update = on_update
-        super(ValueEditorSlider, self).__init__(step=step, *args, **kwargs)
-
-    def on_touch_move(self, touch):
-        super(ValueEditorSlider, self).on_touch_move(touch)
-        self.on_update(self.value)
-
-    def on_touch_down(self, touch):
-        super(ValueEditorSlider, self).on_touch_down(touch)
-        self.on_update(self.value)
-
-
-class ValueEditorText(TextInput):
-    def __init__(self, font_size=FONT_XXLARGE, multiline=False,
-                 background_color=GREY, foreground_color=WHITE,
-                 *args, **kwargs):
-
-        super(ValueEditorText, self).__init__(
-            font_size=font_size,
-            multiline=multiline,
-            background_color=background_color,
-            foreground_color=foreground_color,
-            *args, **kwargs)
-
-    def insert_text(self, substring, from_undo=False):
-        try:
-            text = str(int(substring))
-        except ValueError:
-            text = ''
-
-        return super(ValueEditorText, self).insert_text(
-            text, from_undo=from_undo)
-
-
 class ErrorPopup(Popup):
     def __init__(self, exception, size_hint=(.5, .5), *args, **kwargs):
         content = BoxLayout(orientation='vertical')
@@ -90,87 +50,6 @@ class ErrorPopup(Popup):
         super(ErrorPopup, self).__init__(
             content=content, size_hint=size_hint, *args, **kwargs)
         self.open()
-
-
-class TextPromptPopup(Popup):
-
-    def __init__(self, prompt, callback, size_hint=(.5, .5), *args, **kwargs):
-        self.callback = callback
-        content = BoxLayout(orientation='vertical')
-        content.add_widget(Label(text=str(prompt)))
-        self.text_input = TextInput()
-        content.add_widget(self.text_input)
-
-        content.add_widget(Button(text='Continue', on_press=self.dismiss))
-        super(TextPromptPopup, self).__init__(
-            content=content, size_hint=size_hint, *args, **kwargs)
-
-    def dismiss(self, instance):
-        super(TextPromptPopup, self).dismiss()
-        self.callback(self.text_input.text)
-
-
-class ValueEditorPopup(Popup):
-    def __init__(self, set_value, value, min_val=None, max_val=None,
-                 size_hint=(.6, .5), *args, **kwargs):
-
-        min_val = min_val if min_val is not None else value - 20
-        max_val = max_val if max_val is not None else value + 20
-
-        content = BoxLayout(orientation='vertical')
-        slider_label = ValueEditorText(
-            text='%d' % value,
-            size_hint=(.2, 1),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5})
-
-
-        def update_label(value):
-            slider_label.text = '%d' % value
-
-        slider = ValueEditorSlider(
-            on_update=update_label, min=min_val, max=max_val, value=int(value))
-
-        def save(_):
-            try:
-                set_value(int(slider_label.text))
-                self.dismiss()
-            except Exception as exception:
-                ErrorPopup(exception)
-
-        slider_label.bind(on_text_validation=save)
-        save_btn = Button(text='save', font_size=20, on_press=save)
-
-        slider_box = BoxLayout()
-        label_kwargs = dict(font_size=FONT_MEDIUM, size_hint=(.2, 1))
-
-        # Boundary buttons
-        min_btn = Button(text=str(min_val), **label_kwargs)
-        max_btn = Button(text=str(max_val), **label_kwargs)
-
-        def update_min():
-            slider.min = (slider.min or -1) * 2
-            min_btn.text = str(slider.min)
-
-        def update_max():
-            slider.max = (slider.max or -1) * 2
-            max_btn.text = str(slider.max)
-
-        min_btn.on_press = update_min
-        max_btn.on_press = update_max
-
-        # Add widgets
-        slider_box.add_widget(min_btn)
-        slider_box.add_widget(slider)
-        slider_box.add_widget(max_btn)
-
-        content.add_widget(slider_label)
-        content.add_widget(Label(text='Absolute', size_hint=(1, .2)))
-        content.add_widget(slider_box)
-        content.add_widget(save_btn)
-
-        super(ValueEditorPopup, self).__init__(
-            title='Edit value', content=content, size_hint=size_hint,
-            *args, **kwargs)
 
 
 class TableButton(Button):
@@ -280,28 +159,20 @@ class BackstoryTab(TabbedPanelItem):
 
 class CharcterTab(TabbedPanelItem):
 
-    def __init__(self, text, *args, **kwargs):
-        super(CharcterTab, self).__init__(*args, **kwargs)
+    def __init__(self, text, font_size=FONT_MEDIUM, *args, **kwargs):
+        super(CharcterTab, self).__init__(font_size=font_size, *args, **kwargs)
 
         self.text = text
-        self.font_size=FONT_MEDIUM
 
         # Non player characters
         content = BoxLayout(orientation='vertical')
         self.add_widget(content)
-
-        # Additional Actions
-        actions = BoxLayout(orientation='horizontal', size_hint=(1, .1),)
-        new_char_btn = Button(text='+', on_press=lambda instance: self.new_character())
-        actions.add_widget(new_char_btn)
-        content.add_widget(actions)
 
         # Character sheets
         self.character_sheets = TabbedPanel(
             do_default_tab=False,
             tab_width=200,
             tab_height=100)
-
         content.add_widget(self.character_sheets)
 
     def add_character(self, character):
@@ -317,11 +188,7 @@ class RootWidget(FloatLayout):
     def __init__(self, **kwargs):
         super(RootWidget, self).__init__(**kwargs)
 
-        panel = TabbedPanel(
-            do_default_tab=False,
-            rows=2,
-            tab_width=300,
-            tab_height=100)
+        panel = TabbedPanel(do_default_tab=False, tab_width=400, tab_height=100)
 
         pc_tab = CharcterTab("PCs")
 
