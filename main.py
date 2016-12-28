@@ -14,6 +14,7 @@ class RootWidget(FloatLayout):
 
         pc_tab = CharcterTab("PCs")
         pc_tab.load_characters()
+
         npc_tab = CharcterTab("NPCs")
 
         panel.add_widget(pc_tab)

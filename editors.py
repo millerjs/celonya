@@ -4,6 +4,7 @@ from kivy.uix.label import Label
 from kivy.uix.slider import Slider
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
+from kivy.uix.gridlayout import GridLayout
 
 from util import ErrorPopup
 from constants import (
@@ -46,13 +47,13 @@ class ValueEditorSlider(Slider):
 
 
 class ValueEditorText(TextInput):
-    def __init__(self, font_size=FONT_XXLARGE, multiline=False,
-                 background_color=GREY, foreground_color=WHITE,
-                 *args, **kwargs):
+    def __init__(self, font_size=FONT_XXLARGE, background_color=GREY,
+                 foreground_color=WHITE, *args, **kwargs):
 
         super(ValueEditorText, self).__init__(
             font_size=font_size,
-            multiline=multiline,
+            # focus=True,
+            multiline=False,
             background_color=background_color,
             foreground_color=foreground_color,
             *args, **kwargs)
@@ -69,10 +70,10 @@ class ValueEditorText(TextInput):
 
 class ValueEditorPopup(Popup):
     def __init__(self, set_value, value, min_val=None, max_val=None,
-                 size_hint=(.6, .5), *args, **kwargs):
+                 size_hint=(.6, .8), *args, **kwargs):
 
-        min_val = min_val if min_val is not None else value - 20
-        max_val = max_val if max_val is not None else value + 20
+        min_val = min_val if min_val is not None else value - 5
+        max_val = max_val if max_val is not None else value + 5
 
         content = BoxLayout(orientation='vertical')
         slider_label = ValueEditorText(
@@ -80,12 +81,11 @@ class ValueEditorPopup(Popup):
             size_hint=(.2, 1),
             pos_hint={'center_x': 0.5, 'center_y': 0.5})
 
-
-        def update_label(value):
+        def update_value(value):
             slider_label.text = '%d' % value
 
         slider = ValueEditorSlider(
-            on_update=update_label, min=min_val, max=max_val, value=int(value))
+            on_update=update_value, min=min_val, max=max_val, value=int(value))
 
         def save(_):
             try:
@@ -94,10 +94,27 @@ class ValueEditorPopup(Popup):
             except Exception as exception:
                 ErrorPopup(exception)
 
-        slider_label.bind(on_text_validation=save)
-        save_btn = Button(text='save', font_size=20, on_press=save)
+        value_buttons = BoxLayout(orientation='vertical')
+        for m in range(0, 3):
+            row = BoxLayout(orientation='horizontal')
+            value_buttons.add_widget(row)
+            for i in range(slider.min, slider.max+1):
+                value = i + 10*m
+                def update_closure(instance, n=value):
+                    update_value(n)
+                    save(instance)
 
-        slider_box = BoxLayout()
+                row.add_widget(Button(
+                    text=str(value),
+                    on_press=update_closure,
+                    font_size=FONT_LARGE,
+                ))
+
+        slider_label.bind(on_text_validation=save)
+
+        save_btn = Button(text='save', font_size=20, on_press=save, size_hint=(1, .2))
+
+        slider_box = BoxLayout(size_hint=(1, .2))
         label_kwargs = dict(font_size=FONT_MEDIUM, size_hint=(.2, 1))
 
         # Boundary buttons
@@ -121,9 +138,9 @@ class ValueEditorPopup(Popup):
         slider_box.add_widget(max_btn)
 
         content.add_widget(slider_label)
-        content.add_widget(Label(text='Absolute', size_hint=(1, .2)))
         content.add_widget(slider_box)
         content.add_widget(save_btn)
+        content.add_widget(value_buttons)
 
         super(ValueEditorPopup, self).__init__(
             title='Edit value', content=content, size_hint=size_hint,
