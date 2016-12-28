@@ -5,6 +5,7 @@ from kivy.uix.slider import Slider
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 
+from util import ErrorPopup
 from constants import (
     FONT_SMALL, FONT_MEDIUM, FONT_LARGE, FONT_XLARGE, FONT_XXLARGE, BLACK,
     GREY, WHITE
