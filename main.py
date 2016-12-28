@@ -13,8 +13,8 @@ from kivy.uix.slider import Slider
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.textinput import TextInput
 
-
 from editors import ValueEditorPopup, TextPromptPopup
+from value_table import ValueTable
 
 from constants import (
     FONT_SMALL, FONT_MEDIUM, FONT_LARGE, FONT_XLARGE, FONT_XXLARGE, BLACK,
@@ -38,9 +38,6 @@ class Button1(Button):
     pos_hint = {'center_x': 0.5, 'center_y': 0.5}
 
 
-class TableLabel(Label):
-    font_size = FONT_LARGE
-
 
 class ErrorPopup(Popup):
     def __init__(self, exception, size_hint=(.5, .5), *args, **kwargs):
@@ -50,52 +47,6 @@ class ErrorPopup(Popup):
         super(ErrorPopup, self).__init__(
             content=content, size_hint=size_hint, *args, **kwargs)
         self.open()
-
-
-class TableButton(Button):
-    font_size = FONT_LARGE
-
-    def __init__(self, value, prefix='', suffix='', *args, **kwargs):
-        super(TableButton, self).__init__(*args, **kwargs)
-
-        self.prefix = prefix
-        self.suffix = suffix
-        self.value = value
-        self.update_text()
-
-    def set_value(self, value):
-        self.value = value
-        self.update_text()
-
-    def update_text(self):
-        self.text = self.prefix + str(self.value) + self.suffix
-
-    def popup_editor(self):
-        popup = ValueEditorPopup(self.set_value, self.value)
-        popup.open()
-
-
-class ValueTable(BoxLayout):
-
-    def __init__(self, key_values, prefix='', suffix='', *args, **kwargs):
-        super(ValueTable, self).__init__(*args, **kwargs)
-        content = BoxLayout(orientation='vertical', size_hint=(1, 1))
-        labels = BoxLayout(orientation='horizontal', size_hint=(1, .3))
-        values = BoxLayout(orientation='horizontal', size_hint=(1, .7))
-
-        content.add_widget(labels)
-        content.add_widget(values)
-
-        for key, value in key_values.items():
-            labels.add_widget(TableLabel(text=key))
-            value_button = TableButton(value, prefix, suffix)
-            value_button.on_press = value_button.popup_editor
-            values.add_widget(value_button)
-
-        values.spacing = 20
-        values.padding = 10
-
-        self.add_widget(content)
 
 
 class CharacterSheet(TabbedPanelItem):
