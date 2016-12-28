@@ -13,6 +13,11 @@ from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.textinput import TextInput
 
 
+FONT_SMALL = 10
+FONT_MEDIUM = 20
+FONT_LARGE = 30
+FONT_XLARGE = 40
+
 class Character(object):
 
     def __init__(self, name):
@@ -42,7 +47,7 @@ class Button1(Button):
 
 
 class TableLabel(Label):
-    font_size = 30
+    font_size = FONT_LARGE
 
 
 class ValueEditorSlider(Slider):
@@ -60,8 +65,60 @@ class ValueEditorSlider(Slider):
         self.on_update(self.value)
 
 
+class ValueEditorText(TextInput):
+    def __init__(self, font_size=FONT_XLARGE, multiline=False, *args, **kwargs):
+        super(ValueEditorText, self).__init__(
+            font_size=font_size, multiline=multiline, *args, **kwargs)
+
+
+class ErrorPopup(Popup):
+
+    def __init__(self, exception, size_hint=(.5, .5), *args, **kwargs):
+        content = BoxLayout(orientation='vertical')
+        content.add_widget(Label(text=str(exception)))
+        content.add_widget(Button(text='Continue', on_press=self.dismiss))
+        super(ErrorPopup, self).__init__(
+            content=content, size_hint=size_hint, *args, **kwargs)
+        self.open()
+
+class ValueEditorPopup(Popup):
+
+    def __init__(self, set_value, value, min_val, max_val,
+                 size_hint=(.5, .5), *args, **kwargs):
+        content = BoxLayout(orientation='vertical')
+
+        slider_label = ValueEditorText(text='%d' % value)
+
+        def update_label(value):
+            slider_label.text = '%d' % value
+
+        slider = ValueEditorSlider(
+            on_update=update_label,
+            min=min_val,
+            max=max_val,
+            value=int(value))
+
+        def save(_):
+            try:
+                set_value(int(slider_label.text))
+                self.dismiss()
+            except Exception as exception:
+                ErrorPopup(exception)
+
+        slider_label.bind(on_text_validation=save)
+        save_btn = Button(text='save', font_size=20, on_press=save)
+
+        content.add_widget(slider_label)
+        content.add_widget(slider)
+        content.add_widget(save_btn)
+
+        super(ValueEditorPopup, self).__init__(
+            title='Edit value', content=content, size_hint=size_hint,
+            *args, **kwargs)
+
+
 class TableButton(Button):
-    font_size = 30
+    font_size = FONT_LARGE
 
     def __init__(self, value, prefix='', suffix='', min_val=-20,
                  max_val=20, *args, **kwargs):
@@ -82,29 +139,8 @@ class TableButton(Button):
         self.text = self.prefix + str(self.value) + self.suffix
 
     def popup_editor(self):
-        content = BoxLayout(orientation='vertical')
-        popup = Popup(title='Edit value', content=content, size_hint=(.5, .5))
-
-        slider_label = TextInput(text='%d' % self.value, font_size=40)
-        def update_label(value):
-            slider_label.text = '%d' % value
-
-        slider = ValueEditorSlider(
-            on_update=update_label,
-            min=self.min_val,
-            max=self.max_val,
-            value=int(self.value))
-
-        def save(_):
-            self.set_value(slider.value)
-            popup.dismiss()
-
-        save_btn = Button(text='save', font_size=20, on_press=save)
-
-        content.add_widget(slider_label)
-        content.add_widget(slider)
-        content.add_widget(save_btn)
-
+        popup = ValueEditorPopup(
+            self.set_value, self.value, self.min_val, self.max_val)
         popup.open()
 
 
