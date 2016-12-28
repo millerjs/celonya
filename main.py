@@ -81,22 +81,20 @@ class ErrorPopup(Popup):
             content=content, size_hint=size_hint, *args, **kwargs)
         self.open()
 
+
 class ValueEditorPopup(Popup):
 
     def __init__(self, set_value, value, min_val, max_val,
                  size_hint=(.5, .5), *args, **kwargs):
-        content = BoxLayout(orientation='vertical')
 
+        content = BoxLayout(orientation='vertical')
         slider_label = ValueEditorText(text='%d' % value)
 
         def update_label(value):
             slider_label.text = '%d' % value
 
         slider = ValueEditorSlider(
-            on_update=update_label,
-            min=min_val,
-            max=max_val,
-            value=int(value))
+            on_update=update_label, min=min_val, max=max_val, value=int(value))
 
         def save(_):
             try:
