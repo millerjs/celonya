@@ -10,6 +10,8 @@ from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.slider import Slider
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
+from kivy.uix.textinput import TextInput
+
 
 class Character(object):
 
@@ -83,8 +85,7 @@ class TableButton(Button):
         content = BoxLayout(orientation='vertical')
         popup = Popup(title='Edit value', content=content, size_hint=(.5, .5))
 
-        slider_label = Label(text='%d' % self.value, font_size=40)
-
+        slider_label = TextInput(text='%d' % self.value, font_size=40)
         def update_label(value):
             slider_label.text = '%d' % value
 
