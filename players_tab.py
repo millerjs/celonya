@@ -26,6 +26,7 @@ from constants import (
 
 from character_stats import StatTab
 from character_backstory import BackstoryTab
+from items import ItemTab
 
 
 class CharacterSheet(TabbedPanelItem):
@@ -63,13 +64,6 @@ class WeaponsTab(TabbedPanelItem):
     def __init__(self, *args, **kwargs):
         super(WeaponsTab, self).__init__(*args, **kwargs)
         self.text = 'Weapons'
-
-
-class ItemTab(TabbedPanelItem):
-
-    def __init__(self, *args, **kwargs):
-        super(ItemTab, self).__init__(*args, **kwargs)
-        self.text = 'Items'
 
 
 class CharacterActionsTab(TabbedPanelItem):
@@ -115,8 +109,8 @@ class CharcterTab(TabbedPanelItem):
         content.add_widget(self.character_sheets)
         # self.character_sheets.add_widget(CharacterActionsTab(self))
 
-    def load_characters(self):
-        for character in session.query(Character).all():
+    def load_characters(self, cls):
+        for character in session.query(cls).all():
             self.add_character(character)
 
     def add_character(self, character):

@@ -3,7 +3,8 @@ from kivy.lang import Builder
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.tabbedpanel import TabbedPanel
 
-from players_tab import CharcterTab, Character
+from players_tab import CharcterTab
+from models import Character, NPC
 
 
 class RootWidget(FloatLayout):
@@ -13,9 +14,10 @@ class RootWidget(FloatLayout):
         panel = TabbedPanel(do_default_tab=False, tab_width=400, tab_height=100)
 
         pc_tab = CharcterTab("PCs")
-        pc_tab.load_characters()
+        pc_tab.load_characters(Character)
 
         npc_tab = CharcterTab("NPCs")
+        npc_tab.load_characters(NPC)
 
         panel.add_widget(pc_tab)
         panel.add_widget(npc_tab)

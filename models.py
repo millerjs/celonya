@@ -10,9 +10,7 @@ engine = create_engine('sqlite:///campaign.db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
-class Character(Base):
-    __tablename__ = 'characters'
-
+class CharacterMixin(object):
     name = Column(String, primary_key=True)
     str = Column(Integer, default=0)
     con = Column(Integer, default=0)
@@ -45,6 +43,17 @@ class Character(Base):
     def __repr__(self):
        return "<Character(name='%s')>" % self.name
 
+    def __repr__(self):
+       return "<%s(name='%s')>" % (self.__class__.__name__, self.name)
+
+
+class Character(CharacterMixin, Base):
+    __tablename__ = 'characters'
+
+
+class NPC(CharacterMixin, Base):
+    __tablename__ = 'npcs'
+
 
 class Race(Base):
     __tablename__ = 'races'
@@ -64,6 +73,17 @@ class Class(Base):
 
     def __repr__(self):
        return "<Class(name='%s')>" % self.name
+
+
+class Inventories(Base):
+    __tablename__ = 'inventories'
+
+    character = Column(String, primary_key=True)
+    item = Column(String, primary_key=True)
+    quantity = Column(Integer)
+
+    def __repr__(self):
+       return "<InventoryItem(name='%s')>" % self.name
 
 
 Base.metadata.create_all(engine)

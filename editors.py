@@ -83,6 +83,7 @@ class IntegerEditorPopup(Popup):
     def __init__(self, set_value, value, min_val=None, max_val=None,
                  size_hint=(.6, .8), *args, **kwargs):
 
+        value = value or 0
         min_val = min_val if min_val is not None else value - 5
         max_val = max_val if max_val is not None else value + 5
 

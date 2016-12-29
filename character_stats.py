@@ -55,13 +55,13 @@ class CharacterRace(BoxLayout):
             details.add_widget(RstDocument(text=text))
             details.open()
 
+        spinner.bind(text=self.update)
+        self.add_widget(spinner)
         self.add_widget(Button(
             text="Race details",
             font_size=FONT_XLARGE,
             on_press=view_details))
 
-        spinner.bind(text=self.update)
-        self.add_widget(spinner)
 
 
     def update(self, spinner, race):
@@ -97,12 +97,12 @@ class CharacterClass(BoxLayout):
             details.add_widget(RstDocument(text=text))
             details.open()
 
+        self.add_widget(spinner)
         self.add_widget(Button(
             text="Class details",
             font_size=FONT_XLARGE,
             on_press=view_details))
 
-        self.add_widget(spinner)
 
     def update(self, spinner, class_):
         self.character.class_ = class_
