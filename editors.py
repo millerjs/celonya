@@ -27,14 +27,19 @@ class TextPromptPopup(Popup):
         content.add_widget(self.text_input)
         content.add_widget(actions)
 
-        actions.add_widget(Button(text='Save', on_press=self.save)
-        actions.add_widget(Button(text='Exit', on_press=self.dismiss)
+        actions.add_widget(Button(text='Save', on_press=self.save))
+        actions.add_widget(Button(text='Exit', on_press=self.dismiss))
+        actions.add_widget(Button(text='Save & Exit', on_press=self.save_and_exit))
 
         super(TextPromptPopup, self).__init__(
             content=content, size_hint=size_hint, *args, **kwargs)
 
     def save(self, instance):
         self.callback(self.text_input.text)
+
+    def save_and_exit(self, instance):
+        self.save(instance)
+        self.dismiss()
 
 
 class IntegerEditorSlider(Slider):

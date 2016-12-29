@@ -37,7 +37,6 @@ class BackstoryTab(TabbedPanelItem):
 
         content = BoxLayout(orientation='vertical')
 
-        # content.add_widget(TextInput(text=test))
         rendered = RstDocument(
             text=character.backstory,
             background_color=BLACK,
