@@ -12,16 +12,20 @@ from kivy.uix.popup import Popup
 from kivy.uix.slider import Slider
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.textinput import TextInput
+from kivy.uix.spinner import Spinner
 
-from editors import ValueEditorPopup, TextPromptPopup
+from editors import IntegerEditorPopup, TextPromptPopup
 from value_table import ValueTable
-from models import Character, session
+from models import Character, Race, session, Class
 from util import DarkTextInput
 
 from constants import (
     FONT_SMALL, FONT_MEDIUM, FONT_LARGE, FONT_XLARGE, FONT_XXLARGE, BLACK,
     GREY, WHITE
 )
+
+from character_stats import StatTab
+from character_backstory import BackstoryTab
 
 
 class CharacterSheet(TabbedPanelItem):
@@ -42,30 +46,9 @@ class CharacterSheet(TabbedPanelItem):
         details.add_widget(WeaponsTab())
         details.add_widget(SpellTab())
         details.add_widget(ItemTab())
-        details.add_widget(BackstoryTab())
+        details.add_widget(BackstoryTab(character))
 
         self.add_widget(details)
-
-
-class StatTab(TabbedPanelItem):
-
-    def __init__(self, character, *args, **kwargs):
-        super(StatTab, self).__init__(*args, **kwargs)
-        self.text = 'Stats'
-        self.character = character
-
-        self.content = BoxLayout(orientation='vertical', size_hint=(1, 1))
-        self.content.spacing = 10
-
-        # Modifiers
-        modifiers = ValueTable(
-            character, character.modifiers, prefix='+', size_hint=(1, .3))
-        self.content.add_widget(modifiers)
-
-        # Auxiliary values
-        aux_values = ValueTable(
-            character, character.aux_values, size_hint=(1, .3))
-        self.content.add_widget(aux_values)
 
 
 class SpellTab(TabbedPanelItem):
@@ -87,13 +70,6 @@ class ItemTab(TabbedPanelItem):
     def __init__(self, *args, **kwargs):
         super(ItemTab, self).__init__(*args, **kwargs)
         self.text = 'Items'
-
-
-class BackstoryTab(TabbedPanelItem):
-
-    def __init__(self, *args, **kwargs):
-        super(BackstoryTab, self).__init__(*args, **kwargs)
-        self.text = 'Backstory'
 
 
 class CharacterActionsTab(TabbedPanelItem):
@@ -137,7 +113,7 @@ class CharcterTab(TabbedPanelItem):
             tab_height=100)
 
         content.add_widget(self.character_sheets)
-        self.character_sheets.add_widget(CharacterActionsTab(self))
+        # self.character_sheets.add_widget(CharacterActionsTab(self))
 
     def load_characters(self):
         for character in session.query(Character).all():

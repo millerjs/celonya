@@ -5,7 +5,7 @@ from kivy.uix.slider import Slider
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 
-from editors import ValueEditorPopup
+from editors import IntegerEditorPopup
 from models import session, Base
 
 from constants import (
@@ -43,10 +43,12 @@ class TableButton(Button):
         self.update_text()
 
     def update_text(self):
-        self.text = self.prefix + str(self.value) + self.suffix
+        # self.text = '%s:   %s%s%s' % (
+        #     self.attr, self.prefix, self.value, self.suffix)
+        self.text = '%s%s%s' % (self.prefix, self.value, self.suffix)
 
     def popup_editor(self):
-        popup = ValueEditorPopup(self.set_value, self.value)
+        popup = IntegerEditorPopup(self.set_value, self.value)
         popup.open()
 
 
@@ -55,19 +57,17 @@ class ValueTable(BoxLayout):
     def __init__(self, target, attrs, prefix='', suffix='', *args, **kwargs):
         super(ValueTable, self).__init__(*args, **kwargs)
         content = BoxLayout(orientation='vertical', size_hint=(1, 1))
-        labels = BoxLayout(orientation='horizontal', size_hint=(1, .3))
-        values = BoxLayout(orientation='horizontal', size_hint=(1, .7))
+        columns = BoxLayout(orientation='horizontal')
 
-        content.add_widget(labels)
-        content.add_widget(values)
+        content.add_widget(columns)
+        # content.add_widget(values)
 
         for attr in attrs:
-            labels.add_widget(TableLabel(text=attr))
+            column = BoxLayout(orientation='vertical')
+            column.add_widget(TableLabel(text=attr, size_hint=(1, .4)))
             value_button = TableButton(target, attr, prefix, suffix)
             value_button.on_press = value_button.popup_editor
-            values.add_widget(value_button)
-
-        values.spacing = 20
-        values.padding = 10
+            column.add_widget(value_button)
+            columns.add_widget(column)
 
         self.add_widget(content)

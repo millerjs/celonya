@@ -6,51 +6,57 @@ from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.uix.gridlayout import GridLayout
 
-from util import ErrorPopup
+from util import ErrorPopup, EmacsTextInput
 from constants import (
     FONT_SMALL, FONT_MEDIUM, FONT_LARGE, FONT_XLARGE, FONT_XXLARGE, BLACK,
     GREY, WHITE
 )
 
+
 class TextPromptPopup(Popup):
 
-    def __init__(self, prompt, callback, size_hint=(.5, .5), *args, **kwargs):
-        self.callback = callback
-        content = BoxLayout(orientation='vertical')
-        content.add_widget(Label(text=str(prompt)))
-        self.text_input = TextInput()
-        content.add_widget(self.text_input)
+    def __init__(self, prompt, callback, text='', size_hint=(.9, .9),
+                 *args, **kwargs):
 
-        content.add_widget(Button(text='Continue', on_press=self.dismiss))
+        self.callback = callback
+        self.text_input = EmacsTextInput(text=text)
+        self.title = prompt
+
+        content = BoxLayout(orientation='vertical')
+        actions = BoxLayout(orientation='horizontal', size_hint=(1, .1))
+        content.add_widget(self.text_input)
+        content.add_widget(actions)
+
+        actions.add_widget(Button(text='Save', on_press=self.save)
+        actions.add_widget(Button(text='Exit', on_press=self.dismiss)
+
         super(TextPromptPopup, self).__init__(
             content=content, size_hint=size_hint, *args, **kwargs)
 
-    def dismiss(self, instance):
-        super(TextPromptPopup, self).dismiss()
+    def save(self, instance):
         self.callback(self.text_input.text)
 
 
-
-class ValueEditorSlider(Slider):
+class IntegerEditorSlider(Slider):
 
     def __init__(self, on_update, step=1, *args, **kwargs):
         self.on_update = on_update
-        super(ValueEditorSlider, self).__init__(step=step, *args, **kwargs)
+        super(IntegerEditorSlider, self).__init__(step=step, *args, **kwargs)
 
     def on_touch_move(self, touch):
-        super(ValueEditorSlider, self).on_touch_move(touch)
+        super(IntegerEditorSlider, self).on_touch_move(touch)
         self.on_update(self.value)
 
     def on_touch_down(self, touch):
-        super(ValueEditorSlider, self).on_touch_down(touch)
+        super(IntegerEditorSlider, self).on_touch_down(touch)
         self.on_update(self.value)
 
 
-class ValueEditorText(TextInput):
+class IntegerEditorText(TextInput):
     def __init__(self, font_size=FONT_XXLARGE, background_color=GREY,
                  foreground_color=WHITE, *args, **kwargs):
 
-        super(ValueEditorText, self).__init__(
+        super(IntegerEditorText, self).__init__(
             font_size=font_size,
             # focus=True,
             multiline=False,
@@ -64,11 +70,11 @@ class ValueEditorText(TextInput):
         except ValueError:
             text = ''
 
-        return super(ValueEditorText, self).insert_text(
+        return super(IntegerEditorText, self).insert_text(
             text, from_undo=from_undo)
 
 
-class ValueEditorPopup(Popup):
+class IntegerEditorPopup(Popup):
     def __init__(self, set_value, value, min_val=None, max_val=None,
                  size_hint=(.6, .8), *args, **kwargs):
 
@@ -76,7 +82,7 @@ class ValueEditorPopup(Popup):
         max_val = max_val if max_val is not None else value + 5
 
         content = BoxLayout(orientation='vertical')
-        slider_label = ValueEditorText(
+        slider_label = IntegerEditorText(
             text='%d' % value,
             size_hint=(.2, 1),
             pos_hint={'center_x': 0.5, 'center_y': 0.5})
@@ -84,7 +90,7 @@ class ValueEditorPopup(Popup):
         def update_value(value):
             slider_label.text = '%d' % value
 
-        slider = ValueEditorSlider(
+        slider = IntegerEditorSlider(
             on_update=update_value, min=min_val, max=max_val, value=int(value))
 
         def save(_):
@@ -142,6 +148,6 @@ class ValueEditorPopup(Popup):
         content.add_widget(save_btn)
         content.add_widget(value_buttons)
 
-        super(ValueEditorPopup, self).__init__(
+        super(IntegerEditorPopup, self).__init__(
             title='Edit value', content=content, size_hint=size_hint,
             *args, **kwargs)

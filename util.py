@@ -4,7 +4,7 @@ from kivy.uix.label import Label
 from kivy.uix.slider import Slider
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
-
+from kivy.uix.behaviors.emacs import EmacsBehavior
 from constants import BLACK, WHITE
 
 
@@ -18,6 +18,11 @@ class ErrorPopup(Popup):
         self.open()
 
 
-class DarkTextInput(TextInput):
+class EmacsTextInput(TextInput, EmacsBehavior):
+    background_color = BLACK
+    foreground_color = WHITE
+
+
+class DarkTextInput(EmacsTextInput):
     background_color = BLACK
     foreground_color = WHITE
