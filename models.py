@@ -52,6 +52,52 @@ class NPC(CharacterMixin, Base):
     __tablename__ = 'npcs'
 
 
+class MonsterMixin(object):
+    name = Column(String, primary_key=True)
+    str = Column(Integer, default=0)
+    con = Column(Integer, default=0)
+    int = Column(Integer, default=0)
+    wis = Column(Integer, default=0)
+    cha = Column(Integer, default=0)
+    dex = Column(Integer, default=0)
+    HP = Column(Integer)
+    AC = Column(Integer)
+    speed = Column(String)
+
+    size = Column(String)
+    type = Column(String)
+    subtype = Column(String)
+    alignment = Column(String)
+    hit_dice = Column(String)
+    stealth = Column(Integer)
+    damage_vulnerabilities = Column(String)
+    damage_resistances = Column(String)
+    damage_immunities = Column(String)
+    condition_immunities = Column(String)
+    senses = Column(String)
+    languages = Column(String)
+    challenge_rating = Column(String)
+    special_abilities = Column(String)
+    actions = Column(String)
+
+    modifiers = ['str', 'con', 'int', 'wis', 'cha', 'dex']
+    aux_values = ['AC', 'speed', 'HP', 'MHP']
+    general = ['AC', 'speed', 'HP', 'MHP']
+
+    def __repr__(self):
+        return "<%s(name='%s')>" % (self.__class__.__name__, self.name)
+
+
+class Monster(MonsterMixin, Base):
+    __tablename__ = 'monsters'
+
+
+class MonsterInstance(MonsterMixin, Base):
+    __tablename__ = 'monster_instances'
+
+    monster_type = Column(String)
+
+
 class Race(Base):
     __tablename__ = 'races'
 
@@ -99,5 +145,15 @@ class Item(Base):
 
     def __repr__(self):
         return "<Item(name='%s')>" % self.name
+
+
+class Encounter(Base):
+    __tablename__ = 'encounters'
+
+    name = Column(String, primary_key=True)
+    description = Column(String)
+
+    def __repr__(self):
+        return "<Encounter(name='%s')>" % self.name
 
 Base.metadata.create_all(engine)
