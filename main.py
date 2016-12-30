@@ -3,7 +3,7 @@ from kivy.lang import Builder
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 
-# from monsters_tab import MonsterTab
+from monsters_tab import MonsterTab
 from players_tab import CharcterTab
 from sounds_tab import SoundsTab
 from encounters_tab import EncountersTab
@@ -33,7 +33,7 @@ class RootWidget(FloatLayout):
         panel.add_widget(pc_tab)
         panel.add_widget(npc_tab)
         panel.add_widget(sounds_tab)
-        # panel.add_widget(monster_tab)
+        panel.add_widget(monster_tab)
         panel.add_widget(encounters_tab)
 
         self.add_widget(panel)
