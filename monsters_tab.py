@@ -4,6 +4,7 @@ from random import randint
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
@@ -13,6 +14,7 @@ from kivy.uix.slider import Slider
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner
+from kivy.uix.scrollview import ScrollView
 
 from editors import IntegerEditorPopup, TextPromptPopup
 from value_table import ValueTable
@@ -64,14 +66,15 @@ class MonsterType(BoxLayout):
             values=[monster_type.name for monster_type in session.query(Monster)])
 
         def view_details(_):
-            details = Popup(size_hint=(.8, .8), title=self.monster.monster_type)
+            monster_type = self.monster.monster_type or ''
+            details = Popup(size_hint=(.8, .8), title=monster_type)
             monster_type = (session.query(Monster)
-                    .filter(Monster.name == self.monster.monster_type)
-                    .scalar())
+                            .filter(Monster.name == monster_type)
+                            .scalar())
             if monster_type:
-                text = monster_type.details
+                text = monster_type.get_details()
             else:
-                text = "Monster_Type '%s' not found" % self.monster.monster_type
+                text = "Monster_Type '%s' not found" % monster_type
 
             details.add_widget(RstDocument(text=text))
             details.open()
@@ -102,8 +105,7 @@ class StatTab(TabbedPanelItem):
         # General
         details = MonsterDetails()
         self.content.add_widget(details)
-        details.add_widget(MonsterMonster_Type(self.monster))
-        details.add_widget(MonsterClass(self.monster))
+        details.add_widget(MonsterType(self.monster))
 
         # Modifiers
         modifiers = ValueTable(
@@ -131,9 +133,6 @@ class MonsterSheet(TabbedPanelItem):
             tab_height=80)
 
         details.add_widget(StatTab(monster))
-        details.add_widget(SpellTab())
-        details.add_widget(MonsterItemsTab(monster))
-        details.add_widget(BackstoryTab(monster))
 
         self.add_widget(details)
 
@@ -145,27 +144,89 @@ class SpellTab(TabbedPanelItem):
         self.text = 'Spells'
 
 
-class MonsterActionsTab(TabbedPanelItem):
 
-    def __init__(self, parent, *args, **kwargs):
-        super(MonsterActionsTab, self).__init__(*args, **kwargs)
-        self.text = '*'
+class AddMonsterPopup(Popup):
+    def __init__(self, parent, size_hint=(.8, .8), *args, **kwargs):
+        content = BoxLayout(orientation='vertical')
+        self.title = 'Add monster'
 
-        self.content = BoxLayout(orientation='vertical')
+        name_input = TextInput(text='', size_hint=(1, .1), font_size=FONT_MEDIUM)
+        type_input = TextInput(text='', size_hint=(1, .1), font_size=FONT_MEDIUM)
 
-        new_monster = BoxLayout(orientation='vertical')
-        monster_prompt = BoxLayout(orientation='horizontal')
-        monster_prompt.add_widget(Label(text='Monster Name', size_hint=(.2, 1)))
-        monster_name = DarkTextInput(font_size=FONT_XLARGE)
-        monster_prompt.add_widget(monster_name)
-        new_monster.add_widget(monster_prompt)
-        create_monster = Button(
-            text='Add Monster',
-            on_press=lambda *args: parent.new_monster(
-                monster_name.text.strip()))
-        new_monster.add_widget(create_monster)
+        items = list(sorted(item.name for item in session.query(Monster).all()))
 
-        self.content.add_widget(new_monster)
+        choices = GridLayout(cols=5, spacing=10, size_hint_y=None)
+        choices.bind(minimum_height=choices.setter('height'))
+
+        def save(monster_type):
+            monster_type = (session.query(Monster)
+                            .filter(Monster.name == monster_type)
+                            .one())
+
+            session.merge(MonsterInstance(
+                name=name_input.text,
+                monster_type=monster_type.name,
+                str=monster_type.str,
+                con=monster_type.con,
+                int=monster_type.int,
+                wis=monster_type.wis,
+                cha=monster_type.cha,
+                dex=monster_type.dex,
+                HP=monster_type.HP,
+                AC=monster_type.AC,
+                speed=monster_type.speed,
+                size=monster_type.size,
+                type=monster_type.type,
+                subtype=monster_type.subtype,
+                alignment=monster_type.alignment,
+                hit_dice=monster_type.hit_dice,
+                stealth=monster_type.stealth,
+                damage_vulnerabilities=monster_type.damage_vulnerabilities,
+                damage_resistances=monster_type.damage_resistances,
+                damage_immunities=monster_type.damage_immunities,
+                condition_immunities=monster_type.condition_immunities,
+                senses=monster_type.senses,
+                languages=monster_type.languages,
+                challenge_rating=monster_type.challenge_rating,
+                special_abilities=monster_type.special_abilities,
+                actions=monster_type.actions,
+            ))
+
+            session.commit()
+            parent.load_monsters()
+
+            self.dismiss()
+
+        def add_item(btn):
+            save(btn.text)
+
+        def add_manually(_):
+            save(type_input.text)
+
+        for item in items:
+            btn = Button(text=item, size_hint_y=None, height=40, on_press=add_item)
+            choices.add_widget(btn)
+
+        content.add_widget(name_input)
+        content.add_widget(type_input)
+
+        choices_root = ScrollView()
+        choices_root.add_widget(choices)
+        content.add_widget(choices_root)
+
+        buttons = BoxLayout(orientation='horizontal', size_hint=(1, .2))
+        content.add_widget(buttons)
+        buttons.add_widget(Button(
+            text='Cancel',
+            on_press=self.dismiss,
+        ))
+        buttons.add_widget(Button(
+            text='Add',
+            on_press=add_manually,
+        ))
+
+        super(AddMonsterPopup, self).__init__(
+            content=content, size_hint=size_hint, *args, **kwargs)
 
 
 class MonsterTab(TabbedPanelItem):
@@ -182,14 +243,29 @@ class MonsterTab(TabbedPanelItem):
         # Monster sheets
         self.monster_sheets = TabbedPanel(
             do_default_tab=False,
-            tab_width=200,
+            tab_width=150,
             tab_height=100)
 
+        def add_monster(button):
+            popup = AddMonsterPopup(self)
+            popup.open()
+
+        buttons = BoxLayout(orientation='horizontal', size_hint=(1, .1))
+
+        new_monster = Button(text='+', on_press=add_monster)
+        refresh = Button(text='refresh', on_press=lambda x: self.load_monsters())
+        buttons.add_widget(new_monster)
+        buttons.add_widget(refresh)
+
+        content.add_widget(buttons)
         content.add_widget(self.monster_sheets)
         self.load_monsters()
 
     def load_monsters(self):
-        for monster in session.query(MonsterInstance).all():
+        # existing = {panel.text for panel in self.monster_sheets.}
+        monsters = sorted(session.query(MonsterInstance).all(),
+                          key=lambda monster: monster.name)
+        for monster in monsters:
             self.add_monster(monster)
 
     def add_monster(self, monster):

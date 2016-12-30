@@ -5,13 +5,16 @@ import json
 
 def dict_to_rst(data):
     if isinstance(data, list):
-        return '\n'.join(map(dict_to_rst, data))
+        return '\n\n'.join(map(dict_to_rst, data))
 
-    return '\t'.join([
-        '**%s**: %s' % (key, val)
-        for key, val in data.items()
-    ])
+    text = ''
+    if 'name' in data:
+        text += 'name\n====: %s\n\n' % data.pop('name')
 
+    for key, val in data.items():
+        text += '**%s**: %s\n\n' % (key, val)
+
+    return text
 
 def create_all():
     with open('data_monsters.json', 'r') as f:

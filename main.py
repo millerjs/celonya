@@ -25,7 +25,7 @@ class RootWidget(FloatLayout):
         npc_tab = CharcterTab("NPCs")
         npc_tab.load_characters(NPC)
 
-        # monster_tab = MonsterTab("Monsters")
+        monster_tab = MonsterTab("Monsters")
 
         sounds_tab = SoundsTab("Sounds")
         encounters_tab = EncountersTab()

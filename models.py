@@ -81,8 +81,32 @@ class MonsterMixin(object):
     actions = Column(String)
 
     modifiers = ['str', 'con', 'int', 'wis', 'cha', 'dex']
-    aux_values = ['AC', 'speed', 'HP', 'MHP']
-    general = ['AC', 'speed', 'HP', 'MHP']
+    aux_values = ['AC', 'speed', 'HP']
+    general = ['AC', 'speed', 'HP']
+
+    def get_details(self):
+        text = ''
+
+        text += 'special_abilities\n====\n%s\n\n' % self.special_abilities or '-'
+        text += 'actions\n====\n%s\n\n' % self.actions or '-'
+        text += 'stealth\n====\n%s\n\n' % self.stealth or '-'
+
+        text += 'size\n====\n%s\n\n' % self.size or '-'
+        text += 'type\n====\n%s\n\n' % self.type or '-'
+        text += 'subtype\n====\n%s\n\n' % self.subtype or '-'
+        text += 'alignment\n====\n%s\n\n' % self.alignment or '-'
+        text += 'hit_dice\n====\n%s\n\n' % self.hit_dice or '-'
+        text += 'damage_vulnerabilities\n====\n%s\n\n' % self.damage_vulnerabilities or '-'
+        text += 'damage_resistances\n====\n%s\n\n' % self.damage_resistances or '-'
+        text += 'damage_immunities\n====\n%s\n\n' % self.damage_immunities or '-'
+        text += 'condition_immunities\n====\n%s\n\n' % self.condition_immunities or '-'
+        text += 'senses\n====\n%s\n\n' % self.senses or '-'
+        text += 'languages\n====\n%s\n\n' % self.languages or '-'
+        text += 'challenge_rating\n====\n%s\n\n' % self.challenge_rating or '-'
+
+        print(text)
+
+        return text
 
     def __repr__(self):
         return "<%s(name='%s')>" % (self.__class__.__name__, self.name)
