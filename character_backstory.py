@@ -33,7 +33,7 @@ class BackstoryTab(TabbedPanelItem):
 
         character.backstory = character.backstory or ''
         self.character = character
-        self.text = 'Backstory'
+        self.text = 'Notes'
 
         content = BoxLayout(orientation='vertical')
 

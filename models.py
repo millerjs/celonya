@@ -41,10 +41,7 @@ class CharacterMixin(object):
     general = ['level', 'AC', 'proficiency', 'speed', 'HP', 'MHP']
 
     def __repr__(self):
-       return "<Character(name='%s')>" % self.name
-
-    def __repr__(self):
-       return "<%s(name='%s')>" % (self.__class__.__name__, self.name)
+        return "<%s(name='%s')>" % (self.__class__.__name__, self.name)
 
 
 class Character(CharacterMixin, Base):
@@ -62,7 +59,7 @@ class Race(Base):
     details = Column(String)
 
     def __repr__(self):
-       return "<Race(name='%s')>" % self.name
+        return "<Race(name='%s')>" % self.name
 
 
 class Class(Base):
@@ -72,18 +69,35 @@ class Class(Base):
     details = Column(String)
 
     def __repr__(self):
-       return "<Class(name='%s')>" % self.name
+        return "<Class(name='%s')>" % self.name
 
 
-class Inventories(Base):
+class InventoryItem(Base):
     __tablename__ = 'inventories'
 
     character = Column(String, primary_key=True)
     item = Column(String, primary_key=True)
-    quantity = Column(Integer)
+    quantity = Column(Integer, default=1)
 
     def __repr__(self):
-       return "<InventoryItem(name='%s')>" % self.name
+        return "<InventoryItem(name='%s')>" % self.item
 
+
+class Item(Base):
+    __tablename__ = 'items'
+
+    name = Column(String, primary_key=True)
+    description = Column(String)
+    category = Column(String)
+    ac = Column(String)
+    weight = Column(String)
+    cost = Column(String)
+    strength = Column(String)
+    stealth = Column(String)
+    damage = Column(String)
+    properties = Column(String)
+
+    def __repr__(self):
+        return "<Item(name='%s')>" % self.name
 
 Base.metadata.create_all(engine)

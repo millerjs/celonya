@@ -103,7 +103,6 @@ class CharacterClass(BoxLayout):
             font_size=FONT_XLARGE,
             on_press=view_details))
 
-
     def update(self, spinner, class_):
         self.character.class_ = class_
         self.character = session.merge(self.character)
