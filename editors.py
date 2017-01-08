@@ -110,7 +110,7 @@ class IntegerEditorPopup(Popup):
         for m in range(0, 3):
             row = BoxLayout(orientation='horizontal')
             value_buttons.add_widget(row)
-            for i in range(slider.min, slider.max+1):
+            for i in range(int(slider.min), int(slider.max+1)):
                 value = i + 10*m
                 def update_closure(instance, n=value):
                     update_value(n)

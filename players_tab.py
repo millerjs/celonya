@@ -27,7 +27,7 @@ from constants import (
 from character_stats import StatTab
 from character_backstory import BackstoryTab
 from character_items import CharacterItemsTab
-
+from character_spells import SpellTab
 
 class CharacterSheet(TabbedPanelItem):
 
@@ -49,13 +49,6 @@ class CharacterSheet(TabbedPanelItem):
         details.add_widget(BackstoryTab(character))
 
         self.add_widget(details)
-
-
-class SpellTab(TabbedPanelItem):
-
-    def __init__(self, *args, **kwargs):
-        super(SpellTab, self).__init__(*args, **kwargs)
-        self.text = 'Spells'
 
 
 class CharacterActionsTab(TabbedPanelItem):

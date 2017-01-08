@@ -153,6 +153,32 @@ class InventoryItem(Base):
         return "<InventoryItem(name='%s')>" % self.item
 
 
+class Spell(Base):
+    __tablename__ = 'spells'
+
+    name = Column(String, primary_key=True)
+    casting_time = Column(String)
+    components = Column(String)
+    description = Column(String)
+    duration = Column(String)
+    level = Column(Integer)
+    range = Column(String)
+    school = Column(String)
+
+    def __repr__(self):
+        return "<Spell(name='%s')>" % self.name
+
+
+class SpellbookEntry(Base):
+    __tablename__ = 'spellbook_entries'
+
+    character = Column(String, primary_key=True)
+    spell = Column(String, primary_key=True)
+
+    def __repr__(self):
+        return "<SpellbookEntry(name='%s')>" % self.spell
+
+
 class Item(Base):
     __tablename__ = 'items'
 
