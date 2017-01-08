@@ -1,7 +1,6 @@
 from kivy.app import App
-from kivy.lang import Builder
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
+from kivy.uix.tabbedpanel import TabbedPanel
 
 from monsters_tab import MonsterTab
 from players_tab import CharcterTab
@@ -9,8 +8,6 @@ from sounds_tab import SoundsTab
 from encounters_tab import EncountersTab
 
 from models import Character, NPC
-from constants import FONT_MEDIUM
-from kivy.uix.boxlayout import BoxLayout
 
 
 class RootWidget(FloatLayout):

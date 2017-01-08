@@ -1,9 +1,4 @@
-from kivy.app import App
-from kivy.lang import Builder
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
-from players_tab import CharcterTab
-from models import Character, NPC
 from constants import FONT_MEDIUM
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
